@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <!-- Title & Icon -->
+    <title>PaletteCrafter - Minecraft Color-Palette Generator</title>
+    <link rel='icon' href='blocks/cobblestone.png'>
+    <!-- Meta -->
+    <meta name='description' content=''>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <!-- Google Fonts : -->
+    <link rel='preconnect' href='https://fonts.gstatic.com'>
+    <link href='https://fonts.googleapis.com/css2?family=Barlow:wght@100;200;300;400;500;600;700;800;900&display=swap' rel='stylesheet'>
+    <!-- FontAwesome -->
+    <script src='https://kit.fontawesome.com/038f795198.js' crossorigin='anonymous'></script>
+    <!-- CSS -->
+    <link rel='stylesheet' href='style.css'>
+    <!-- Scripts -->    
+</head>
+<body>
+    <p id="title"><span>PALETTECRAFTER</span></p>
+    <p id="subtitle">Minecraft Color-Palette Generator</p>
+    <div id="color-info">
+        <p>Pick A Color!</p>
+        <i class="fa-solid fa-arrow-down"></i>
+    </div>    
+    <div id="color-div">
+        <img id="color-shadow" src="images/shadow.png" alt="">
+        <input id="color" type="color" />
+    </div>
+    <div class="sub-div" onmouseleave="displayTooltip('',false)">
+        <p class="sub-title">Generated Palette:</p>
+        <div id="similar-colors">
+        </div>
+        <div id="tooltips"></div>
+    </div>
+    <!--<div class="sub-div">
+        <p class="sub-title">Your Palette:</p>
+    </div>-->
+    <script src='index.js' onload="loadJson()" type="module"></script>
+</body>
