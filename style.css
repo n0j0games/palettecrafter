@@ -13,6 +13,10 @@
   }
 
 body {
+    overflow-x: hidden;
+}
+
+body {
     width: 100vw;
     height: 100vh;
     background-color: var(--background);
@@ -247,10 +251,34 @@ rect {
     color: var(--accent);
 }
 
+#footer {
+    color: var(--light-accent);
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+}
+
+#footer:hover {
+    color: var(--text);
+}
+
+#footer img {
+    width: 16px;
+    image-rendering: pixelated;
+}
+
 @media (max-width: 1100px) {
 
     body {
         justify-content: flex-start;
+    }
+
+    #footer {
+        position: relative;
+        bottom: 0;
+        left: 0;
+        margin: 20px 0 0 0;
+        padding-bottom: 50px;
     }
 
     #color-div {
@@ -286,4 +314,25 @@ rect {
         margin: 0 0 30px 0;
         text-align: center;
     }
+}
+
+/*
+    Scrollbar
+ */
+ ::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: linear-gradient(0deg, var(--accent), #db0000);
+    background: var(--accent);
+    background-size: 400% 100%;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--light-accent);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text);
 }
