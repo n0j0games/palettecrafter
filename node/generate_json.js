@@ -7,7 +7,7 @@ let json = {
     "blocks": []
 };
 
-const endings = ["top","bottom","side","open","closed","side0","side1","side2","side3","on"];
+const endings = ["top","bottom","side","open","closed","side0","side1","side2","side3","on","moist"];
 
 fs.readdir("../blocks", (err, files) => {
     files.forEach(file => {

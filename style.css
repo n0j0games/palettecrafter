@@ -178,6 +178,11 @@ button, input, a {
     margin: 2px 2px 2px 10px;
 }
 
+.tooltip a:hover {
+    color: var(--light-accent);
+
+}
+
 #color-div {
     display: flex;
     height: 100px;

@@ -11,6 +11,7 @@ const html = {
     palette : document.getElementById("palette"),
 }
 
+const starter = ["#6B423D","#CF9D96","#428494","#24500C","#B94ABF","#41AA93","#BF6F4A","#707070"]
 window.loadJson = function() {
     fetch("blocks.json")
     .then(response => response.json())
@@ -28,8 +29,10 @@ window.loadJson = function() {
             }
             const item = json.blocks[Math.floor(Math.random() * json.blocks.length)];
             link.href = item.image;
-            document.getElementById("color").value = "#BF6F4A";
-            calculateForEach("#BF6F4A");
+            //get random color from starter
+            const color = starter[Math.floor(Math.random() * starter.length)];
+            document.getElementById("color").value = color;
+            calculateForEach(color);
         });
     });
 }
@@ -84,11 +87,11 @@ function getTooltip(blockID, item) {
     let tooltip = "";
     tooltip += `<div id="tooltip_${blockID}" class="tooltip"><div class="tooltip-left">`
     if (item.href != "") {
-        tooltip += `<img href="${item.href}" src="${item.refimage}"/>`
+        tooltip += `<img src="${item.refimage}"/>`
     }
     tooltip += `</div><div class="tooltip-right">`;
     if (item.href != "") {
-        tooltip += `<a href="${item.href}" class="similar-title">${item.block}</a>`
+        tooltip += `<a href="${item.href}" target="_blank" class="similar-title">${item.block}</a>`
     } else {
         tooltip += `<p class="similar-title">${item.block}</p>`
     }
