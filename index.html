@@ -29,13 +29,18 @@
         <input id="color" type="color" />
     </div>
     <div class="sub-div" onmouseleave="displayTooltip('',false)">
-        <p class="sub-title">Generated Palette:</p>
+        <p class="sub-title">Similar Blocks:</p>
+        <p class="sub-sub-title">Click on a block to add him to your palette</p>
         <div id="similar-colors">
         </div>
         <div id="tooltips"></div>
     </div>
-    <!--<div class="sub-div">
+    <div class="sub-div" onmouseleave="displayTooltip('',false)">
         <p class="sub-title">Your Palette:</p>
-    </div>-->
-    <script src='index.js' onload="loadJson()" type="module"></script>
+        <p class="sub-sub-title">Click on a block to remove him from your palette</p>
+        <div id="palette" class="sortable-list">
+            <i class="fa-solid fa-palette"></i>
+        </div>
+    </div>
+    <script src='index.js' onload="loadJson()" type="module"></script>    
 </body>

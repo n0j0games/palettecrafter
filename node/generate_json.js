@@ -16,7 +16,10 @@ fs.readdir("../blocks", (err, files) => {
     for (let i in filenames) {
         const filename = filenames[i];
         if (!filename.endsWith(".png")) continue;
-        getColors(path.join("../blocks/", filename)).then(colors => {
+        const options = {
+            count: 2,
+        }
+        getColors(path.join("../blocks/", filename),options).then(colors => {
             let new_filename = filename.replace(".png", "").replaceAll("_", " ").toLowerCase().trim();
             let variant = "";
             for (let ending in endings) {

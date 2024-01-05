@@ -8,6 +8,7 @@ let json = {}
 const html = {
     similarColors: document.getElementById("similar-colors"),
     tooltips : document.getElementById("tooltips"),
+    palette : document.getElementById("palette"),
 }
 
 window.loadJson = function() {
@@ -44,12 +45,12 @@ function calculateForEach(color) {
         let block = json.blocks[i].block;
         let variant = json.blocks[i].variant;
         let image = json.blocks[i].image;
+        block = block.replace("lapis", "lapis lazuli");
         let ref = json.references.find(ref => ref.block == block);
         if (ref == undefined && block.includes("block")) {
             block = "block of " + block.replace("block", "").trim();
             ref = json.references.find(ref => ref.block == block);
         }
-        console.log(ref, block);
         let refimage = "";
         let href = "";
         if (ref != undefined) {
@@ -59,39 +60,49 @@ function calculateForEach(color) {
         let colors = json.blocks[i].colors;
         const mean_ = meanDistance(color1, colors);
         let mean = mean_.mean;
-        let closest = mean_.closest;
-        list.push({block, variant, image, mean, closest, refimage, href});
+        list.push({block, variant, image, mean, refimage, href, colors});
     }
     list.sort((a, b) => a.mean - b.mean);
-    console.log(list);
-    list = list.slice(0, 10);
+    list = list.slice(0, 6);
 
     let html_ = "";
     let tooltip = "";
     list.forEach((item) => {
         const blockID = item.block.replaceAll(" ", "_")+"_"+item.variant;
-        const mean = item.mean;
-        let percentage = 100 - mean;
-        if (percentage < 0) percentage = 0; 
-        html_ += `<div onmouseenter="displayTooltip('tooltip_${blockID}',true)" class="similar-color"> <img src="${item.image}" title="${item.block}"/></div>`;
-        tooltip += `<div id="tooltip_${blockID}" class="tooltip"><div class="tooltip-left">`
-        if (item.href != "") {
-            tooltip += `<img href="${item.href}" src="${item.refimage}"/>`
-        }
-        tooltip += `</div><div class="tooltip-right">`;
-        if (item.href != "") {
-            tooltip += `<a href="${item.href}" class="similar-title">${item.block}</a>`
-        } else {
-            tooltip += `<p class="similar-title">${item.block}</p>`
-        }
-        if (item.variant != "") {
-            tooltip += `<div class="tooltip-sub"><p>Texture: <span class="bold">${item.variant}</span></p></div>`            
-        }
-        tooltip += `<div class="tooltip-sub"><p>Score: <span style="color: ${getCssPercentage(Math.round(percentage))};" class="bold">${Math.round(percentage)}%</span></p></div></div></div>`
+        const imageConv = item.image.replace("\\", "%2F");
+        html_ += `<div onclick="addToPalette('${blockID}','${item.block}','${imageConv}')" onmouseenter="displayTooltip('tooltip_${blockID}',true)" class="similar-color"> <img src="${item.image}" title="${item.block}"/></div>`;
+        tooltip += getTooltip(blockID, item);
     });
 
     html.similarColors.innerHTML = html_;
     html.tooltips.innerHTML = tooltip;
+}
+
+function getTooltip(blockID, item) {
+    let percentage = 100 - item.mean;
+    if (percentage < 0) percentage = 0;
+    let tooltip = "";
+    tooltip += `<div id="tooltip_${blockID}" class="tooltip"><div class="tooltip-left">`
+    if (item.href != "") {
+        tooltip += `<img href="${item.href}" src="${item.refimage}"/>`
+    }
+    tooltip += `</div><div class="tooltip-right">`;
+    if (item.href != "") {
+        tooltip += `<a href="${item.href}" class="similar-title">${item.block}</a>`
+    } else {
+        tooltip += `<p class="similar-title">${item.block}</p>`
+    }
+    if (item.variant != "") {
+        tooltip += `<div class="tooltip-sub"><p>Texture: <span class="bold">${item.variant}</span></p></div>`            
+    }
+    tooltip += `<div class="tooltip-sub"><p>Score: <span style="color: ${getCssPercentage(Math.round(percentage))};" class="bold">${Math.round(percentage)}%</span></p></div>`
+    tooltip += `<div class="tooltip-sub"><p>Colors: </p><svg>`
+    for (let c in item.colors) {
+        let rgb = item.colors[c]._rgb;
+        tooltip += `<rect x=${c*20} style="fill: rgb(${rgb[0]},${rgb[1]},${rgb[2]});"/>`
+    }
+    tooltip += `</svg></div></div></div>`
+    return tooltip;
 }
 
 function meanDistance(color1, colorArray) {    
@@ -117,6 +128,27 @@ window.displayTooltip = function(id, enable) {
     }
     if (enable) {
         document.getElementById(id).style.display = "flex";
+    }
+}
+
+window.addToPalette = function(blockID, block, image) {
+    const item = document.getElementById(`item_${blockID}`);
+    if (item != undefined) return;
+
+    const html_ = `<div id="item_${blockID}" onclick="removeFromPalette('${blockID}')" onmouseenter="displayTooltip('tooltip_${blockID}',true)" class="similar-color"> <img src="${image}" title="${block}"/></div>`;
+    if (html.palette.innerHTML.trim() == '<i class="fa-solid fa-palette" aria-hidden="true"></i>') {
+        html.palette.innerHTML = html_;
+    } else {
+        html.palette.innerHTML += html_;
+    }
+}
+
+window.removeFromPalette = function(blockID) {
+    const item = document.getElementById(`item_${blockID}`);
+    if (item == undefined) return;
+    item.remove();
+    if (html.palette.innerHTML.trim() == "") {
+        html.palette.innerHTML = '<i class="fa-solid fa-palette" aria-hidden="true"></i>';
     }
 }
 
