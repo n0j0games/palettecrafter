@@ -253,6 +253,10 @@ rect {
         justify-content: flex-start;
     }
 
+    #color-div {
+        margin-bottom: 150px;
+    }
+
     .sub-div {
         min-width: auto;
         width: 100%;
