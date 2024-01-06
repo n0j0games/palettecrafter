@@ -1,4 +1,5 @@
 import Color from "https://colorjs.io/dist/color.js";
+import colorVariety from "./colorVariety.js";
 
 document.querySelector("#color").onchange = e => {
     calculateForEach(e.target.value);
@@ -21,6 +22,17 @@ window.loadJson = function() {
         .then(response => response.json())
         .then(json_ => json.references = json_.references)
         .then(() => {
+            let max = 0;
+            for (let i in json.blocks) {
+                json.blocks[i].variety = colorVariety.calcColorVariety(json.blocks[i].colors);
+                if (json.blocks[i].variety > max) {
+                    max = json.blocks[i].variety;
+                }
+            }
+            console.log("MAX",max);
+            for (let i in json.blocks) {
+                json.blocks[i].variety = 100 - Math.round((json.blocks[i].variety / max) * 100);
+            }
             var link = document.querySelector("link[rel~='icon']");
             if (!link) {
                 link = document.createElement('link');
@@ -48,8 +60,10 @@ function calculateForEach(color) {
         let block = json.blocks[i].block;
         let variant = json.blocks[i].variant;
         let image = json.blocks[i].image;
+        let variety = json.blocks[i].variety;
         block = block.replace("lapis", "lapis lazuli");
         block = block.replace("hay block", "hay bale");
+        block = block.replace("magma", "magma block");
         let ref = json.references.find(ref => ref.block == block);
         if (ref == undefined && block.includes("block")) {
             block = "block of " + block.replace("block", "").trim();
@@ -62,11 +76,17 @@ function calculateForEach(color) {
             href = ref.href;
         } 
         let colors = json.blocks[i].colors;
+
+        // Caclulates the score for the block
         const mean_ = meanDistance(color1, colors);
-        let mean = mean_.closest;
-        list.push({block, variant, image, mean, refimage, href, colors});
+        let percentage = 100 - mean_.closest;
+        if (percentage < 0) percentage = 0;
+        let score = (percentage + variety * 0.5) / 150 * 100; // score = 100 % percentage + 50% variety
+        //let score = percentage < variety ? percentage : variety;
+        if (score < 40) continue;
+        list.push({block, variant, image, score, percentage, refimage, href, colors, variety});
     }
-    list.sort((a, b) => a.mean - b.mean);
+    list.sort((a, b) => b.score - a.score);
     list = list.slice(0, 10);
 
     let html_ = "";
@@ -83,23 +103,24 @@ function calculateForEach(color) {
 }
 
 function getTooltip(blockID, item) {
-    let percentage = 100 - item.mean;
-    if (percentage < 0) percentage = 0;
     let tooltip = "";
     tooltip += `<div id="tooltip_${blockID}" class="tooltip"><div class="tooltip-left">`
     if (item.href != "") {
         tooltip += `<img src="${item.refimage}"/>`
     }
     tooltip += `</div><div class="tooltip-right">`;
-    if (item.href != "") {
+    tooltip += `<p class="similar-title">${item.block}</p>`
+    /*if (item.href != "") {
         tooltip += `<a href="${item.href}" target="_blank" class="similar-title">${item.block}</a>`
     } else {
         tooltip += `<p class="similar-title">${item.block}</p>`
-    }
+    }*/
     if (item.variant != "") {
         tooltip += `<div class="tooltip-sub"><p>Texture: <span class="bold">${item.variant}</span></p></div>`            
     }
-    tooltip += `<div class="tooltip-sub"><p>Score: <span style="color: ${getCssPercentage(Math.round(percentage))};" class="bold">${Math.round(percentage)}%</span></p></div>`
+    tooltip += `<div class="tooltip-sub"><p>Score: <span style="color: ${getCssPercentage(Math.round(item.score))};" class="bold">${Math.round(item.score)}%</span></p></div>`
+    /*tooltip += `<div class="tooltip-sub"><p>Similarity: <span style="color: ${getCssPercentage(Math.round(item.percentage))};" class="bold">${Math.round(item.percentage)}%</span></p></div>`
+    tooltip += `<div class="tooltip-sub"><p>Smoothness: <span style="color: ${getCssPercentage(Math.round(item.variety))};" class="bold">${Math.round(item.variety)}%</span></p></div>`*/
     tooltip += `<div class="tooltip-sub"><p>Colors: </p><svg>`
     for (let c in item.colors) {
         let rgb = item.colors[c]._rgb;
@@ -142,7 +163,7 @@ window.addToPalette = function(blockID, block, image) {
     const item = document.getElementById(`item_${blockID}`);
     if (item != undefined) return;
 
-    const html_ = `<div id="item_${blockID}" onclick="removeFromPalette('${blockID}')" onmouseenter="displayTooltip('tooltip_${blockID}',true)" class="similar-color"> <img src="${image}" title="${block}"/></div>`;
+    const html_ = `<div id="item_${blockID}" onclick="removeFromPalette('${blockID}')" class="similar-color"> <img src="${image}" title="${block}"/></div>`;
     if (html.palette.innerHTML.trim() == '<i class="fa-solid fa-palette" aria-hidden="true"></i>') {
         html.palette.innerHTML = html_;
     } else {

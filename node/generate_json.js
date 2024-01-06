@@ -1,13 +1,14 @@
 const path = require('path')
 const fs = require('fs');
 const getColors = require('get-image-colors');
+const Color = require('colorjs.io');
 
 let filenames = [];
 let json = {
     "blocks": []
 };
 
-const endings = ["top","bottom","side","open","closed","side0","side1","side2","side3","moist","front","0","front honey"];
+const endings = ["top","bottom","side","open","closed","side0","side1","side2","side3","moist","front","0","front honey","on","corner","data","load","save"];
 
 fs.readdir("../blocks", (err, files) => {
     files.forEach(file => {
@@ -17,14 +18,14 @@ fs.readdir("../blocks", (err, files) => {
         const filename = filenames[i];
         if (!filename.endsWith(".png")) continue;
         const options = {
-            count: 2,
+            count: 5,
         }
         getColors(path.join("../blocks/", filename),options).then(colors => {
             let new_filename = filename.replace(".png", "").replaceAll("_", " ").toLowerCase().trim();
             let variant = "";
             for (let ending in endings) {
-                if (new_filename.endsWith(endings[ending])) {
-                    new_filename = new_filename.replace(endings[ending], "").trim();
+                if (new_filename.endsWith(" " + endings[ending])) {
+                    new_filename = new_filename.replace(" " + endings[ending], "").trim();
                     variant = endings[ending];
                 }
             }
@@ -33,6 +34,7 @@ fs.readdir("../blocks", (err, files) => {
                 image: path.join("blocks", filename),
                 colors: colors,
                 variant: variant
+                //variety: calcColorVariety(colors),
             }
             json.blocks.push(json_);
             console.log(`File ${filename} processed.`);
@@ -45,3 +47,4 @@ fs.readdir("../blocks", (err, files) => {
         })
     }
 });
+

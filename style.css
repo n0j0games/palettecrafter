@@ -133,7 +133,11 @@ button, input, a {
 }
 
 #tooltips {
-    height: 140px;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: var(--div-background);
+    z-index: 2;
 }
 
 .tooltip {
@@ -227,7 +231,7 @@ button, input, a {
 }
 
 svg {
-    width: 40px;
+    width: 100px;
     height: 20px;
     border: 2px solid var(--accent);
 }
@@ -276,6 +280,13 @@ rect {
 
     body {
         justify-content: flex-start;
+    }
+
+    #tooltips {
+        position: relative;
+        bottom: 0;
+        right: 0;
+        height: 150px;
     }
 
     #footer {
