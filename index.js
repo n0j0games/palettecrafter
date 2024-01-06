@@ -49,6 +49,7 @@ function calculateForEach(color) {
         let variant = json.blocks[i].variant;
         let image = json.blocks[i].image;
         block = block.replace("lapis", "lapis lazuli");
+        block = block.replace("hay block", "hay bale");
         let ref = json.references.find(ref => ref.block == block);
         if (ref == undefined && block.includes("block")) {
             block = "block of " + block.replace("block", "").trim();
@@ -62,11 +63,11 @@ function calculateForEach(color) {
         } 
         let colors = json.blocks[i].colors;
         const mean_ = meanDistance(color1, colors);
-        let mean = mean_.mean;
+        let mean = mean_.closest;
         list.push({block, variant, image, mean, refimage, href, colors});
     }
     list.sort((a, b) => a.mean - b.mean);
-    list = list.slice(0, 6);
+    list = list.slice(0, 10);
 
     let html_ = "";
     let tooltip = "";
@@ -110,6 +111,7 @@ function getTooltip(blockID, item) {
 
 function meanDistance(color1, colorArray) {    
     let distances = [];
+    let closest = 10000;
     colorArray.forEach((color) => {
         let rgb = color._rgb;
         let color2 = new Color("sRGB", [rgb[0], rgb[1], rgb[2]]);
@@ -117,10 +119,12 @@ function meanDistance(color1, colorArray) {
         Color.defaults.deltaE = "2000";
         let distance = color1.deltaE(color2);
         distances.push(distance);
+        if (distance < closest) {
+            closest = distance;
+        }
     });
-    let closest = Math.min(...distances);
     let mean = distances.reduce((a, b) => a + b, 0) / distances.length;
-    return {"mean" : mean, "closestDistance" : closest};
+    return {"mean" : mean, "closest" : closest};
 }
 
 window.displayTooltip = function(id, enable) {
