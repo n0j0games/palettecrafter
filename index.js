@@ -10,6 +10,8 @@ const html = {
     similarColors: document.getElementById("similar-colors"),
     tooltips : document.getElementById("tooltips"),
     palette : document.getElementById("palette"),
+    palette_tooltips : document.getElementById("palette-tooltips"),
+    saved_palettes : document.getElementById("saved-palettes"),
 }
 
 const starter = ["#6B423D","#CF9D96","#428494","#24500C","#B94ABF","#41AA93","#BF6F4A","#707070"]
@@ -29,7 +31,6 @@ window.loadJson = function() {
                     max = json.blocks[i].variety;
                 }
             }
-            console.log("MAX",max);
             for (let i in json.blocks) {
                 json.blocks[i].variety = 100 - Math.round((json.blocks[i].variety / max) * 100);
             }
@@ -45,6 +46,7 @@ window.loadJson = function() {
             const color = starter[Math.floor(Math.random() * starter.length)];
             document.getElementById("color").value = color;
             calculateForEach(color);
+            displayPalettes();
         });
     });
 }
@@ -57,26 +59,9 @@ function calculateForEach(color) {
         color1 = new Color("sRGB", [5, 5, 5]);
     }
     for (let i in json.blocks) {
-        let block = json.blocks[i].block;
-        let variant = json.blocks[i].variant;
-        let image = json.blocks[i].image;
-        let variety = json.blocks[i].variety;
-        block = block.replace("lapis", "lapis lazuli");
-        block = block.replace("hay block", "hay bale");
-        block = block.replace("magma", "magma block");
-        let ref = json.references.find(ref => ref.block == block);
-        if (ref == undefined && block.includes("block")) {
-            block = "block of " + block.replace("block", "").trim();
-            ref = json.references.find(ref => ref.block == block);
-        }
-        let refimage = "";
-        let href = "";
-        if (ref != undefined) {
-            refimage = ref.image;
-            href = ref.href;
-        } 
-        let colors = json.blocks[i].colors;
-
+        const block = json.blocks[i];
+        const variety = json.blocks[i].variety;
+        const colors = json.blocks[i].colors;
         // Caclulates the score for the block
         const mean_ = meanDistance(color1, colors);
         let percentage = 100 - mean_.closest;
@@ -84,46 +69,45 @@ function calculateForEach(color) {
         let score = (percentage + variety * 0.5) / 150 * 100; // score = 100 % percentage + 50% variety
         //let score = percentage < variety ? percentage : variety;
         if (score < 40) continue;
-        list.push({block, variant, image, score, percentage, refimage, href, colors, variety});
+        list.push({block, score});
     }
     list.sort((a, b) => b.score - a.score);
     list = list.slice(0, 10);
 
     let html_ = "";
     let tooltip = "";
-    list.forEach((item) => {
-        const blockID = item.block.replaceAll(" ", "_")+"_"+item.variant;
-        const imageConv = item.image.replace("\\", "%2F");
-        html_ += `<div onclick="addToPalette('${blockID}','${item.block}','${imageConv}')" onmouseenter="displayTooltip('tooltip_${blockID}',true)" class="similar-color"> <img src="${item.image}" title="${item.block}"/></div>`;
-        tooltip += getTooltip(blockID, item);
+    list.forEach((item) => {        
+        const imageConv = item.block.image.replace("\\", "%2F");
+        html_ += `<div onclick="addToPalette('${item.block.id}','${item.block.name}','${imageConv}')" onmouseenter="displayTooltip('tooltip_main_${item.block.id}',true)" class="similar-color"> <img src="${item.block.image}" title="${item.block.name}"/></div>`;
+        tooltip += getTooltip(item,"main");
     });
 
     html.similarColors.innerHTML = html_;
     html.tooltips.innerHTML = tooltip;
 }
 
-function getTooltip(blockID, item) {
+function getTooltip(item,type) {
     let tooltip = "";
-    tooltip += `<div id="tooltip_${blockID}" class="tooltip"><div class="tooltip-left">`
+    tooltip += `<div id="tooltip_${type}_${item.block.id}" class="tooltip"><div class="tooltip-left">`
     if (item.href != "") {
-        tooltip += `<img src="${item.refimage}"/>`
+        tooltip += `<img src="${item.block.refimage}"/>`
     }
     tooltip += `</div><div class="tooltip-right">`;
-    tooltip += `<p class="similar-title">${item.block}</p>`
+    tooltip += `<p class="similar-title">${item.block.name}</p>`
     /*if (item.href != "") {
         tooltip += `<a href="${item.href}" target="_blank" class="similar-title">${item.block}</a>`
     } else {
         tooltip += `<p class="similar-title">${item.block}</p>`
     }*/
-    if (item.variant != "") {
-        tooltip += `<div class="tooltip-sub"><p>Texture: <span class="bold">${item.variant}</span></p></div>`            
+    if (item.block.variant != "") {
+        tooltip += `<div class="tooltip-sub"><p>Texture: <span class="bold">${item.block.variant}</span></p></div>`            
     }
-    tooltip += `<div class="tooltip-sub"><p>Score: <span style="color: ${getCssPercentage(Math.round(item.score))};" class="bold">${Math.round(item.score)}%</span></p></div>`
-    /*tooltip += `<div class="tooltip-sub"><p>Similarity: <span style="color: ${getCssPercentage(Math.round(item.percentage))};" class="bold">${Math.round(item.percentage)}%</span></p></div>`
-    tooltip += `<div class="tooltip-sub"><p>Smoothness: <span style="color: ${getCssPercentage(Math.round(item.variety))};" class="bold">${Math.round(item.variety)}%</span></p></div>`*/
+    if (item.score != undefined) {
+        tooltip += `<div class="tooltip-sub"><p>Score: <span style="color: ${getCssPercentage(Math.round(item.score))};" class="bold">${Math.round(item.score)}%</span></p></div>`
+    }
     tooltip += `<div class="tooltip-sub"><p>Colors: </p><svg>`
-    for (let c in item.colors) {
-        let rgb = item.colors[c]._rgb;
+    for (let c in item.block.colors) {
+        let rgb = item.block.colors[c]._rgb;
         tooltip += `<rect x=${c*20} style="fill: rgb(${rgb[0]},${rgb[1]},${rgb[2]});"/>`
     }
     tooltip += `</svg></div></div></div>`
@@ -159,16 +143,19 @@ window.displayTooltip = function(id, enable) {
     }
 }
 
-window.addToPalette = function(blockID, block, image) {
+window.addToPalette = function(blockID) {
+    const block = getBlockById(blockID);
     const item = document.getElementById(`item_${blockID}`);
     if (item != undefined) return;
 
-    const html_ = `<div id="item_${blockID}" onclick="removeFromPalette('${blockID}')" class="similar-color"> <img src="${image}" title="${block}"/></div>`;
+    const html_ = `<div id="item_${block.id}" onclick="removeFromPalette('${block.id}')" onmouseenter="displayTooltip('tooltip_palette_${block.id}',true)" class="similar-color palette-item"> <img src="${block.image}" title="${block.name}"/></div>`;
+    const tooltip = getTooltip({"block":block},"palette");
     if (html.palette.innerHTML.trim() == '<i class="fa-solid fa-palette" aria-hidden="true"></i>') {
         html.palette.innerHTML = html_;
     } else {
         html.palette.innerHTML += html_;
     }
+    html.palette_tooltips.innerHTML += tooltip;
 }
 
 window.removeFromPalette = function(blockID) {
@@ -177,6 +164,69 @@ window.removeFromPalette = function(blockID) {
     item.remove();
     if (html.palette.innerHTML.trim() == "") {
         html.palette.innerHTML = '<i class="fa-solid fa-palette" aria-hidden="true"></i>';
+    }
+    const tooltip = document.getElementById(`tooltip_palette_${blockID}`);
+    tooltip.remove();
+}
+
+window.clearPalette = function() {
+    html.palette.innerHTML = '<i class="fa-solid fa-palette" aria-hidden="true"></i>';
+    html.palette_tooltips.innerHTML = "";
+}
+
+window.replacePalette = function(palette) {   
+    window.clearPalette();
+    for (let j = 0; j < palette.length; j++) {
+        const block = getBlockById(palette[j]);
+        window.addToPalette(block.id);
+    }
+}
+
+window.savePalette = function() {
+    let palette = [];
+    const items = document.getElementsByClassName("palette-item");
+    if (items.length == 0) return;
+    for (let i = 0; i < items.length; i++) {
+        const item = items.item(i);
+        const id = item.id.replace("item_", "");
+        palette.push(id);
+    }
+    const storage = localStorage.getItem("palette");
+    let json_ = [];
+    if (storage != null) {
+        json_ = JSON.parse(storage);
+    }
+    json_.push(palette);
+    localStorage.setItem("palette", JSON.stringify(json_));
+    displayPalettes();
+}
+
+window.clearSaves = function() {
+    localStorage.removeItem("palette");
+    displayPalettes();
+}
+
+function displayPalettes() {
+    const storage = localStorage.getItem("palette");
+    if (storage == null) {
+        html.saved_palettes.innerHTML = "";
+        return;
+    }
+    const json_ = JSON.parse(storage);
+    html.saved_palettes.innerHTML = "";
+    for (let i = 0; i < json_.length; i++) {
+        const palette = json_[i];
+        let html__ = "";
+        for (let j = 0; j < palette.length; j++) {
+            const block = getBlockById(palette[j]);
+            html__ += `<div id="mini_${block.id}" class="mini-color"><img src="${block.image}"/></div>`;
+        }
+        const str = JSON.stringify(palette);
+        const textpalette = str.replaceAll('"', "'");
+        html.saved_palettes.innerHTML += `<div class="mini-palette"><div class="mini-palette-items">${html__}</div>
+        <button class="load-button" onclick="replacePalette(${textpalette})"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
+        <!--<button><i class="fa-regular fa-trash-can"></i></button>-->
+        </div>`;
     }
 }
 
@@ -196,4 +246,8 @@ function getCssPercentage(percentage) {
     } else {
         return "#DF3E23";
     }
+}
+
+function getBlockById(id) {
+    return json.blocks.find(block => block.id == id);
 }

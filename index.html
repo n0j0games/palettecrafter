@@ -33,7 +33,8 @@
         <p class="sub-sub-title">Click on a block to add him to your palette</p>
         <div id="similar-colors">
         </div>
-        <div id="tooltips"></div>
+        <div id="tooltips" class="tooltips"></div>
+        <div id="palette-tooltips" class="tooltips"></div>
     </div>
     <div class="sub-div" onmouseleave="displayTooltip('',false)">
         <p class="sub-title">Your Palette:</p>
@@ -41,6 +42,16 @@
         <div id="palette" class="sortable-list">
             <i class="fa-solid fa-palette"></i>
         </div>
+        <div>
+            <button onclick="savePalette()"><i class="fa-solid fa-arrow-right-to-bracket"></i>SAVE</button>
+            <button onclick="clearPalette()"><i class="fa-regular fa-trash-can"></i>CLEAR</button>
+        </div>        
+    </div>
+    <div class="sub-div">
+        <p class="sub-title">Saved Palettes (soon)</p>
+        <p class="sub-sub-title">:3</p>
+        <div id="saved-palettes"></div>
+        <button onclick="clearSaves()"><i class="fa-regular fa-trash-can"></i>CLEAR SAVES</button>
     </div>
     <a id="footer" href="https://noahschuette.github.io">Made with <img src="images/heart.png" alt=""> by Noah</a>
     <script src='index.js' onload="loadJson()" type="module"></script>    
