@@ -45,27 +45,22 @@ function gen() {
                     new_filename = "block of " + new_filename.replace("block", "").trim();
                     ref = references.find(ref => ref.block == new_filename);
                 }
-                let refimage = "";
-                let href = "";
-                if (ref != undefined) {
-                    refimage = ref.image;
-                    href = ref.href;
-                } 
+                 
                 let json_ = {
                     id: filename.replace(".png", ""),
                     name: new_filename,
                     image: path.join("blocks", filename),
                     colors: colors,
                     variant: variant,
-                    mod: "Minecraft",
-                    refimage: refimage,
-                    href: href,
+                    mod: null,
+                    refimage: null,
+                    href: null,
                     //variety: calcColorVariety(colors),
                 }
                 json.blocks.push(json_);
                 console.log(`File ${filename} processed.`);
                 if (i == filenames.length-1) {
-                    fs.writeFile(`../blocks.json`, JSON.stringify(json), function(err) {
+                    fs.writeFile(`../modded.json`, JSON.stringify(json), function(err) {
                         if (err) { console.log(err); }
                         else { console.log("File saved."); }
                     });

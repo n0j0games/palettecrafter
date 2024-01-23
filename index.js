@@ -14,8 +14,10 @@ const html = {
     saved_palettes : document.getElementById("saved-palettes"),
 }
 
+let isOnMobile = false;
+
 const starter = ["#6B423D","#CF9D96","#428494","#24500C","#B94ABF","#41AA93","#BF6F4A","#707070"]
-window.loadJson = function() {
+window.loadJson = function() {    
     fetch("blocks.json")
     .then(response => response.json())
     .then(json_ => json = json_)
@@ -45,6 +47,9 @@ window.loadJson = function() {
             //get random color from starter
             const color = starter[Math.floor(Math.random() * starter.length)];
             document.getElementById("color").value = color;
+            if (window.screen && window.screen.width < 1100) {
+                isOnMobile = true;
+            }
             calculateForEach(color);
             displayPalettes();
         });
@@ -78,7 +83,11 @@ function calculateForEach(color) {
     let tooltip = "";
     list.forEach((item) => {        
         const imageConv = item.block.image.replace("\\", "%2F");
-        html_ += `<div onclick="addToPalette('${item.block.id}','${item.block.name}','${imageConv}')" onmouseenter="displayTooltip('tooltip_main_${item.block.id}',true)" class="similar-color"> <img src="${item.block.image}" title="${item.block.name}"/></div>`;
+        if (isOnMobile) {
+            html_ += `<div onclick="addToPalette('${item.block.id}','${item.block.name}','${imageConv}')" class="similar-color"> <img class="no-tooltip" src="${item.block.image}" title="${item.block.name}"/></div>`;
+        } else {
+            html_ += `<div onclick="addToPalette('${item.block.id}','${item.block.name}','${imageConv}')" onmouseenter="displayTooltip('tooltip_main_${item.block.id}',true)" class="similar-color"> <img class="no-tooltip" src="${item.block.image}" title="${item.block.name}"/></div>`;
+        }
         tooltip += getTooltip(item,"main");
     });
 
@@ -90,7 +99,7 @@ function getTooltip(item,type) {
     let tooltip = "";
     tooltip += `<div id="tooltip_${type}_${item.block.id}" class="tooltip"><div class="tooltip-left">`
     if (item.href != "") {
-        tooltip += `<img src="${item.block.refimage}"/>`
+        tooltip += `<img class="no-tooltip" src="${item.block.refimage}"/>`
     }
     tooltip += `</div><div class="tooltip-right">`;
     tooltip += `<p class="similar-title">${item.block.name}</p>`
@@ -148,7 +157,7 @@ window.addToPalette = function(blockID) {
     const item = document.getElementById(`item_${blockID}`);
     if (item != undefined) return;
 
-    const html_ = `<div id="item_${block.id}" onclick="removeFromPalette('${block.id}')" onmouseenter="displayTooltip('tooltip_palette_${block.id}',true)" class="similar-color palette-item"> <img src="${block.image}" title="${block.name}"/></div>`;
+    const html_ = `<div id="item_${block.id}" onclick="removeFromPalette('${block.id}')" onmouseenter="displayTooltip('tooltip_palette_${block.id}',true)" class="similar-color palette-item"> <img class="no-tooltip" src="${block.image}" title="${block.name}"/></div>`;
     const tooltip = getTooltip({"block":block},"palette");
     if (html.palette.innerHTML.trim() == '<i class="fa-solid fa-palette" aria-hidden="true"></i>') {
         html.palette.innerHTML = html_;
@@ -219,7 +228,7 @@ function displayPalettes() {
         let html__ = "";
         for (let j = 0; j < palette.length; j++) {
             const block = getBlockById(palette[j]);
-            html__ += `<div id="mini_${block.id}" class="mini-color"><img src="${block.image}"/></div>`;
+            html__ += `<div id="mini_${block.id}" class="mini-color"><img class="no-tooltip" src="${block.image}"/></div>`;
         }
         const str = JSON.stringify(palette);
         const textpalette = str.replaceAll('"', "'");

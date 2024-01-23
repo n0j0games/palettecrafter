@@ -328,6 +328,10 @@ button i {
     margin: 5px;
 }
 
+.no-tooltip {
+    pointer-events: none;
+}
+
 @media (max-width: 1100px) {
 
     body {
