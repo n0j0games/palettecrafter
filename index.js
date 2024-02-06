@@ -50,6 +50,11 @@ window.loadJson = function() {
             if (window.screen && window.screen.width < 1100) {
                 isOnMobile = true;
             }
+            let location = window.location.href.split("?")[0];
+            if (location.includes("netlify.app")) {
+                location = location.replace("netlify.app","noahschuette.de");
+                window.location.href = location;
+            }
             calculateForEach(color);
             displayPalettes();
         });
