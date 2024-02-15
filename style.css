@@ -20,7 +20,7 @@ body {
     width: 100vw;
     background-color: var(--background);
     color: var(--text);
-    margin: 70px 0 30px 0;
+    margin: 60px 0 30px 0;
     font-family: 'Minecraft', 'Barlow', sans-serif;
     display: flex;
     flex-direction: column;
@@ -67,7 +67,6 @@ button, input, a {
     left: 30px;
     margin: 20px;
     font-size: 40px;
-    filter: drop-shadow(0px 5px 0px #5D2C28);
 }
 
 #title span {
@@ -290,7 +289,7 @@ rect {
 }
 
 #saved-palettes {
-    margin: 10px;
+    margin: 10px 10px 0 10px;
 }
 
 .mini-palette {

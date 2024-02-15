@@ -12,6 +12,7 @@ const html = {
     palette : document.getElementById("palette"),
     palette_tooltips : document.getElementById("palette-tooltips"),
     saved_palettes : document.getElementById("saved-palettes"),
+    gen_button : document.getElementById("gen-button")
 }
 
 let isOnMobile = false;
@@ -22,42 +23,43 @@ window.loadJson = function() {
     .then(response => response.json())
     .then(json_ => json = json_)
     .then(() => {
-        fetch("references.json")
-        .then(response => response.json())
-        .then(json_ => json.references = json_.references)
-        .then(() => {
-            let max = 0;
-            for (let i in json.blocks) {
-                json.blocks[i].variety = colorVariety.calcColorVariety(json.blocks[i].colors);
-                if (json.blocks[i].variety > max) {
-                    max = json.blocks[i].variety;
-                }
+        console.log(json);
+        let max = 0;
+        for (let i in json.blocks) {
+            json.blocks[i].variety = colorVariety.calcColorVariety(json.blocks[i].colors);
+            if (json.blocks[i].variety > max) {
+                max = json.blocks[i].variety;
             }
-            for (let i in json.blocks) {
-                json.blocks[i].variety = 100 - Math.round((json.blocks[i].variety / max) * 100);
-            }
-            var link = document.querySelector("link[rel~='icon']");
-            if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.head.appendChild(link);
-            }
-            const item = json.blocks[Math.floor(Math.random() * json.blocks.length)];
-            link.href = item.image;
-            //get random color from starter
-            const color = starter[Math.floor(Math.random() * starter.length)];
-            document.getElementById("color").value = color;
-            if (window.screen && window.screen.width < 1100) {
-                isOnMobile = true;
-            }
-            let location = window.location.href.split("?")[0];
-            if (location.includes("netlify.app")) {
-                location = location.replace("netlify.app","noahschuette.de");
-                window.location.href = location;
-            }
-            calculateForEach(color);
-            displayPalettes();
-        });
+        }
+        for (let i in json.blocks) {
+            json.blocks[i].variety = 100 - Math.round((json.blocks[i].variety / max) * 100);
+        }
+        var link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+            link = document.createElement('link');
+            link.rel = 'icon';
+            document.head.appendChild(link);
+        }
+        const item = json.blocks[Math.floor(Math.random() * json.blocks.length)];
+        link.href = item.image;
+        //get random color from starter
+        const color = starter[Math.floor(Math.random() * starter.length)];
+        document.getElementById("color").value = color;
+        if (window.screen && window.screen.width < 1100) {
+            isOnMobile = true;
+        }
+        let location = window.location.href.split("?")[0];
+        if (location.includes("netlify.app")) {
+            location = location.replace("netlify.app","noahschuette.de");
+            window.location.href = location;
+        }
+        calculateForEach(color);
+        displayPalettes();
+        const params = new URLSearchParams(window.location.search);
+        const palette = params.get("palette");
+        if (palette != null) {
+            replacePalette(palette.split(","));
+        }
     });
 }
 
@@ -162,7 +164,12 @@ window.addToPalette = function(blockID) {
     const item = document.getElementById(`item_${blockID}`);
     if (item != undefined) return;
 
-    const html_ = `<div id="item_${block.id}" onclick="removeFromPalette('${block.id}')" onmouseenter="displayTooltip('tooltip_palette_${block.id}',true)" class="similar-color palette-item"> <img class="no-tooltip" src="${block.image}" title="${block.name}"/></div>`;
+    let html_ = "";
+    if (isOnMobile) {
+        html_ = `<div id="item_${block.id}" onclick="removeFromPalette('${block.id}')" class="similar-color palette-item"> <img class="no-tooltip" src="${block.image}" title="${block.name}"/></div>`;
+    } else {
+        html_ = `<div id="item_${block.id}" onclick="removeFromPalette('${block.id}')" onmouseenter="displayTooltip('tooltip_palette_${block.id}',true)" class="similar-color palette-item"> <img class="no-tooltip" src="${block.image}" title="${block.name}"/></div>`;
+    }    
     const tooltip = getTooltip({"block":block},"palette");
     if (html.palette.innerHTML.trim() == '<i class="fa-solid fa-palette" aria-hidden="true"></i>') {
         html.palette.innerHTML = html_;
@@ -189,11 +196,42 @@ window.clearPalette = function() {
 }
 
 window.replacePalette = function(palette) {   
+    const items = document.getElementsByClassName("palette-item");
+    if (items.length > 0) {
+        if (confirm("Do you want to replace the current palette?")) {
+            clearPalette();
+        } else {
+            return;
+        }
+    }
     window.clearPalette();
     for (let j = 0; j < palette.length; j++) {
         const block = getBlockById(palette[j]);
         window.addToPalette(block.id);
     }
+}
+
+window.generateLink = function() {
+    let palette = [];
+    const items = document.getElementsByClassName("palette-item");
+    if (items.length == 0) return;
+    for (let i = 0; i < items.length; i++) {
+        const item = items.item(i);
+        const id = item.id.replace("item_", "");
+        palette.push(id);
+    }
+    const str = JSON.stringify(palette);
+    const textpalette = str.replaceAll('"', "").replace("[","").replace("]","");
+    const link = window.location.href.split("?")[0] + "?palette=" + textpalette;
+    console.log(link);
+    navigator.clipboard.writeText(link);
+    const html_ = html.gen_button.innerHTML;
+    html.gen_button.innerHTML = '<i class="fa-solid fa-check"></i> LINK COPIED!';
+    html.gen_button.disabled = true;
+    setTimeout(() => {
+        html.gen_button.innerHTML = html_;
+        html.gen_button.disabled = false;
+    }, 2000)
 }
 
 window.savePalette = function() {
@@ -215,6 +253,18 @@ window.savePalette = function() {
     displayPalettes();
 }
 
+window.deletePalette = function(index) {
+    if (!confirm("Do you want to delete this palette?")) {
+        return;
+    }
+    const storage = localStorage.getItem("palette");
+    if (storage == null) return;
+    const json_ = JSON.parse(storage);    
+    json_.splice(index,1);
+    localStorage.setItem("palette", JSON.stringify(json_));
+    displayPalettes();
+}
+
 window.clearSaves = function() {
     localStorage.removeItem("palette");
     displayPalettes();
@@ -222,8 +272,8 @@ window.clearSaves = function() {
 
 function displayPalettes() {
     const storage = localStorage.getItem("palette");
-    if (storage == null) {
-        html.saved_palettes.innerHTML = "";
+    if (storage == null || storage == "[]") {
+        html.saved_palettes.innerHTML = "<p class='sub-sub-title'>No saved palettes</p>";
         return;
     }
     const json_ = JSON.parse(storage);
@@ -238,8 +288,8 @@ function displayPalettes() {
         const str = JSON.stringify(palette);
         const textpalette = str.replaceAll('"', "'");
         html.saved_palettes.innerHTML += `<div class="mini-palette"><div class="mini-palette-items">${html__}</div>
-        <button class="load-button" onclick="replacePalette(${textpalette})"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
-        <!--<button><i class="fa-regular fa-trash-can"></i></button>-->
+        <button class="load-button" onclick="replacePalette(${textpalette})"><i class="fa-solid fa-pen"></i></button>
+        <button onclick="deletePalette(${i})"><i class="fa-regular fa-trash-can"></i></button>
         </div>`;
     }
 }
