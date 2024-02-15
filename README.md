@@ -1,4 +1,4 @@
-# palettecrafter
+# palettecrafter - Minecraft Palette Generator
 
 A Tool to find Minecraft blocks similar to any color and generate awesome color palettes - 
 [Check it out here!](https://palettecrafter.noahschuette.de/)
