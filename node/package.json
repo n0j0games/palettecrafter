@@ -12,6 +12,7 @@
     "colorjs.io": "^0.4.5",
     "esm": "^3.2.25",
     "get-image-colors": "^4.0.1",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "x-ray": "^2.3.4"
   }
 }
